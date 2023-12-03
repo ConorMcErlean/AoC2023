@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bufio"
+	"adventOfCode23/cmd/common"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"unicode"
@@ -12,12 +11,8 @@ import (
 
 var numMap map[string]int
 func main(){
-	var arguements = os.Args
-	if len(arguements) < 2 {
-		log.Fatal("We really need a file to do anything")
-	}
+	var calibrationFile = common.ReadFileFromArgs()
 	initNumMap()
-	var calibrationFile = readFile(arguements[1])
 	parseAndPrintCalibration(calibrationFile)
 }
 
@@ -33,25 +28,6 @@ func initNumMap(){
 	numMap["seven"] = 7
 	numMap["eight"] = 8
 	numMap["nine"] = 9
-}
-
-func readFile(filename string) []string {
-	var fileLines []string
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatalf("Unable to read the file: %v", err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		fileLines = append(fileLines, scanner.Text())
-	}
-	
-	if err := scanner.Err(); err != nil {
-		log.Fatalf("Something went wrong scanning: %v", err)
-	}
-	return fileLines
 }
 
 func parseAndPrintCalibration(calibrations []string) {
