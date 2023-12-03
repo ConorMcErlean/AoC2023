@@ -3,8 +3,7 @@ package parsing
 import (
 	"strings"
 	"strconv"
-	"adventOfCode23/cmd/day2/games" as Game
-	
+	. "adventOfCode23/cmd/day2/games"
 )
 
 func ParseGames(lines []string) []Game {
