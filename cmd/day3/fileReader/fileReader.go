@@ -12,7 +12,8 @@ func ParseLine(
 	lineIndex int,
 	partNumbers []PartNumber,
 	symbols []Coordinate,
-) ([]PartNumber, []Coordinate) {
+	gears []Gear,
+) ([]PartNumber, []Coordinate, []Gear) {
 	var startCoOrd, endCoOrd, number = Reset()
 	var lineLength = len(line)
 
@@ -31,7 +32,11 @@ func ParseLine(
 			partNumbers =  StopBuildingAndAdd(startCoOrd, endCoOrd, number, partNumbers)
 			startCoOrd, endCoOrd, number = Reset() 
 			if char != '.' {
-				symbols = append(symbols, Coordinate{ X: index, Y: lineIndex})	
+				location := Coordinate{ X: index, Y: lineIndex}
+				symbols = append(symbols, location) 
+				if char == '*' {
+					gears = append(gears, Gear { Location : location } )
+				}
 			}
 		default:
 			fmt.Println(string(char), "Is neither a number or Symbol")
@@ -44,7 +49,7 @@ func ParseLine(
 			startCoOrd, endCoOrd, number = Reset() 
 		}
 	}
-	return partNumbers, symbols
+	return partNumbers, symbols, gears
 }
 
 func StopBuildingAndAdd(start Coordinate, end Coordinate, number string, partNumbers []PartNumber) []PartNumber {
@@ -79,6 +84,11 @@ type PartNumber struct {
 	Number int
 	StartCoordinate Coordinate
 	EndCoordinate Coordinate
+}
+
+type Gear struct {
+	Location Coordinate
+	PartNumbers []PartNumber
 }
 
 type Coordinate struct {
