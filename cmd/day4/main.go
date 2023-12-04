@@ -9,14 +9,27 @@ import (
 
 func main() {
 	input := common.ReadFileFromArgs()
-	totalScore := 0
-	for gameNumber, line := range input {
-		winners, gameValues := ReadScratchCard(line)
-		score := CheckScoreOfGame(winners, gameValues)
-		totalScore += score 
-		fmt.Printf("\nScore for game %v was: %v\n", gameNumber+1, score)
+	scratchCards := make(map[int]int)
+	for index := range input {
+		gameNumber := index +1
+		// handle iniial/original card
+		count, exists := scratchCards[gameNumber]
+		if !exists {
+			// first time this card used
+			scratchCards[gameNumber] = 1	
+		} else {
+			scratchCards[gameNumber] = count +1
+		}
+		playCard(gameNumber, input, scratchCards)
+
 	}
-	fmt.Printf("\nTotal Score %v\n", totalScore)
+
+	var totalCount int64 = 0
+	for card, count := range scratchCards {
+		fmt.Printf("Card %v had %v copies", card, count)
+		totalCount += int64(count)
+	}
+	fmt.Printf("\nTotal Count %v\n", totalCount)
 }
 
 func CheckScoreOfGame(game []int, winners []int) int {
@@ -24,26 +37,30 @@ func CheckScoreOfGame(game []int, winners []int) int {
 	score := 0
 	for _, play := range game {
 		if slices.Contains(winners, play) {
-			score = AdjustScore(score)
+			score += 1
 		}
 	} 
 
-	// same loop reverse incase double values arent both scored as winners?
-
-//	for _, winner := range winners {
-//		if slices.Contains(game, winner) {
-//			fmt.Printf("\nWinner: %v", winner)
-//			score = AdjustScore(score)
-//		}
-//	}
 	return score
 }
 
-func AdjustScore(score int) int {
-	if score == 0 {
-		score += 1
-	} else {
-		score *= 2
+func playCard(gameNumber int, input []string, scratchCards map[int]int ) {
+	index := gameNumber -1
+	// Play a game as many times as it is in the scratchCards Map
+	for i := 0; i < scratchCards[gameNumber]; i++ {
+		fmt.Printf("\n Playing game %v", gameNumber)	
+		winners, gameValues := ReadScratchCard(input[index])
+		score := CheckScoreOfGame(winners, gameValues)
+		fmt.Printf("\nScore for game %v was: %v\n", gameNumber, score)
+		winCopysOfScratchCards(input, gameNumber, scratchCards, score)
+
 	}
-	return score
+}
+
+func winCopysOfScratchCards(allCards []string, currentGame int, scratchCards map[int]int, score int){
+	for i:= 1; i <= score; i++ {
+		nextCard := currentGame + i
+		scratchCards[nextCard] = scratchCards[nextCard] +1
+		fmt.Printf("\n now have %v copies of card %v\n", scratchCards[nextCard], nextCard)
+	}
 }
