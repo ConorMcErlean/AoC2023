@@ -3,15 +3,13 @@ package almanac
 import (
 	"adventOfCode23/cmd/common"
 	"adventOfCode23/cmd/day5/filereading"
-	"fmt"
 	"strings"
 )
 
-func GetSeedsAndAlmanac(file []string) (seeds []int64, almanac map[string][]Mapping) {
+func GetSeedsAndAlmanac(file []string) (seeds []Mapping, almanac map[string][]Mapping) {
 	almanac = make(map[string][]Mapping)
 	almanacParts := filereading.BreakInputIntoComponents(file)
-
-
+	
 	for key, value := range almanacParts {
 		if key == "seeds" {
 			seeds = getSeeds(value)
@@ -19,16 +17,11 @@ func GetSeedsAndAlmanac(file []string) (seeds []int64, almanac map[string][]Mapp
 			almanac[key] = ConvertLinesToMap(value)
 		}
 	}
-	fmt.Println("Seeds:", seeds)
 	return seeds, almanac
 }
 
 func ConvertLinesToMap(input []string) (mappings []Mapping) {
-	
-	for index, line := range input {
-		if (index == 0) {
-			continue 
-		}
+	for _, line := range input {
 		lineVals := strings.Split(line, " ")
 		destination := getValueFrom(lineVals, 0)
 		source := getValueFrom(lineVals, 1)
@@ -40,7 +33,9 @@ func ConvertLinesToMap(input []string) (mappings []Mapping) {
 	return mappings
 }
 
-func getSeeds(lines []string)(seeds []int64) {
+func getSeeds(lines []string) []Mapping {
+	var seeds []int64
+	var seedMappings []Mapping
 	for _, line := range lines {
 		if len(line) == 0 {
 			continue
@@ -53,7 +48,14 @@ func getSeeds(lines []string)(seeds []int64) {
 			seeds = append(seeds, int64( common.StringToInt( strings.TrimSpace(value))))
 		}
 	}
-	return seeds
+	for i := 0; i < len(seeds); i += 2 {
+		length := seeds[i+1]
+		start := seeds[i]
+		// -1 Because length includes first number
+		mapping := Mapping { Low: start, High: start + length -1 } 	
+		seedMappings = append(seedMappings, mapping)
+	}
+	return seedMappings
 }
 
 func getValueFrom(values []string, index int) int64 {
