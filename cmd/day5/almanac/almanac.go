@@ -7,14 +7,13 @@ import (
 	"strings"
 )
 
-func FindMap(file []string){
-	var seeds []int
-	almanac := make(map[string]map[int]int)
+func GetSeedsAndAlmanac(file []string) (seeds []int64, almanac map[string]map[int64]int64) {
+	almanac = make(map[string]map[int64]int64)
 	almanacParts := filereading.BreakInputIntoComponents(file)
 
 
 	for key, value := range almanacParts {
-		fmt.Printf("\nMap %v will contain %v\n", key, value)
+		//fmt.Printf("\nMap %v will contain %v\n", key, value)
 		if key == "seeds" {
 			seeds = getSeeds(value)
 		} else {
@@ -22,11 +21,11 @@ func FindMap(file []string){
 		}
 	}
 	fmt.Println("Seeds:", seeds)
-
+	return seeds, almanac
 }
 
-func ConvertLinesToMap(input []string) map[int]int {
-	almanacMap := make(map[int]int)
+func ConvertLinesToMap(input []string) map[int64]int64 {
+	almanacMap := make(map[int64]int64)
 
 	for index, line := range input {
 		if (index == 0) {
@@ -36,35 +35,35 @@ func ConvertLinesToMap(input []string) map[int]int {
 		destination := getValueFrom(lineVals, 0)
 		source := getValueFrom(lineVals, 1)
 		length := getValueFrom(lineVals, 2)
-		for i := 0; i < length; i++ {
+		fmt.Println("Got all the values for a line, now to build the map")
+		for i := int64(0); i < int64(length); i++ {
 			almanacMap[source + i] = destination + i 
 		}
+		fmt.Println("Built that line!")
 	}
-	fmt.Println("\nMap has values:", almanacMap)
 	return almanacMap
 }
 
-func getSeeds(lines []string)(seeds []int) {
+func getSeeds(lines []string)(seeds []int64) {
 	for _, line := range lines {
-		fmt.Println("SL:", line)
 		if len(line) == 0 {
 			continue
 		}
-		sections := strings.Split(line, ":")
-		valuesString := sections[1]
-		fmt.Println("Seed Values:", valuesString)
-		for _, value := range strings.Split(valuesString, " ") {
-			fmt.Printf("Seeds array parsing %v", value)
-			seeds = append(seeds, common.StringToInt( strings.TrimSpace(value)))
+		for _, value := range strings.Split(line, " ") {
+			if (len(value) == 0) || (value == " "){
+				// handle any incorrect values from split
+				continue
+			}
+			seeds = append(seeds, int64( common.StringToInt( strings.TrimSpace(value))))
 		}
 	}
 	return seeds
 }
 
-func getValueFrom(values []string, index int) int {
+func getValueFrom(values []string, index int) int64 {
 	value := strings.TrimSpace(values[index]) 
 //	fmt.Printf("\n Going to parse to Value: %v", value)
-	number := common.StringToInt( value )
+	number := int64(common.StringToInt( value ))
 	return number
 }
 
