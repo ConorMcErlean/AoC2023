@@ -19,15 +19,23 @@ func main() {
 		temperature := ConvertToDestination(light, almanac["light-to-temperature"])
 		humidity := ConvertToDestination(temperature, almanac["temperature-to-humidity"])
 		location := ConvertToDestination(humidity, almanac["humidity-to-location"])
-		fmt.Printf("\nSeed %v Goes in location %v\n", seed, location)
+//		fmt.Printf("\nSeed %v Goes in location %v\n", seed, location)
 		locations = append(locations, location)
 	}
 
 	fmt.Printf("Closest Location  : %v ", slices.Min(locations))
 }
 
-func ConvertToDestination(input int64, almanacPart map[int64]int64) int64 {
-	destination, exists := almanacPart[input]
+func ConvertToDestination(input int64, almanacPart []almanac.Mapping) (destination int64) {
+	var exists = false
+	for _, mapping := range almanacPart {
+		if (input >= mapping.Low) && (input <= mapping.High) {
+			destination = input - mapping.Translation
+			exists = true
+			break
+		}
+	}
+
 	if !exists {
 		destination = input
 	}

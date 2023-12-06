@@ -7,13 +7,12 @@ import (
 	"strings"
 )
 
-func GetSeedsAndAlmanac(file []string) (seeds []int64, almanac map[string]map[int64]int64) {
-	almanac = make(map[string]map[int64]int64)
+func GetSeedsAndAlmanac(file []string) (seeds []int64, almanac map[string][]Mapping) {
+	almanac = make(map[string][]Mapping)
 	almanacParts := filereading.BreakInputIntoComponents(file)
 
 
 	for key, value := range almanacParts {
-		//fmt.Printf("\nMap %v will contain %v\n", key, value)
 		if key == "seeds" {
 			seeds = getSeeds(value)
 		} else {
@@ -24,9 +23,8 @@ func GetSeedsAndAlmanac(file []string) (seeds []int64, almanac map[string]map[in
 	return seeds, almanac
 }
 
-func ConvertLinesToMap(input []string) map[int64]int64 {
-	almanacMap := make(map[int64]int64)
-
+func ConvertLinesToMap(input []string) (mappings []Mapping) {
+	
 	for index, line := range input {
 		if (index == 0) {
 			continue 
@@ -35,13 +33,11 @@ func ConvertLinesToMap(input []string) map[int64]int64 {
 		destination := getValueFrom(lineVals, 0)
 		source := getValueFrom(lineVals, 1)
 		length := getValueFrom(lineVals, 2)
-		fmt.Println("Got all the values for a line, now to build the map")
-		for i := int64(0); i < int64(length); i++ {
-			almanacMap[source + i] = destination + i 
-		}
-		fmt.Println("Built that line!")
+		// Previous version of loop was insane
+		mapping := Mapping { Low: source, High: source + length, Translation: source - destination }
+		mappings = append(mappings, mapping)
 	}
-	return almanacMap
+	return mappings
 }
 
 func getSeeds(lines []string)(seeds []int64) {
@@ -62,9 +58,12 @@ func getSeeds(lines []string)(seeds []int64) {
 
 func getValueFrom(values []string, index int) int64 {
 	value := strings.TrimSpace(values[index]) 
-//	fmt.Printf("\n Going to parse to Value: %v", value)
 	number := int64(common.StringToInt( value ))
 	return number
 }
 
-
+type Mapping struct {
+	Low int64
+	High int64
+	Translation int64
+}
