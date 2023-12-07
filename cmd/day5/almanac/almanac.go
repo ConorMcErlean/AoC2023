@@ -27,7 +27,7 @@ func ConvertLinesToMap(input []string) (mappings []Mapping) {
 		source := getValueFrom(lineVals, 1)
 		length := getValueFrom(lineVals, 2)
 		// Previous version of loop was insane
-		mapping := Mapping { Low: source, High: source + length, Translation: source - destination }
+		mapping := Mapping { Low: source, High: source + length -1, Translation: source - destination }
 		mappings = append(mappings, mapping)
 	}
 	return mappings
