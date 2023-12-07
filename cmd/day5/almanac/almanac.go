@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
-func GetSeedsAndAlmanac(file []string) (seeds []Mapping, almanac map[string][]Mapping) {
-	almanac = make(map[string][]Mapping)
+func GetSeedsAndAlmanac(file []string) (seeds []Mapping, almanac [][]Mapping) {
+	//almanac = make(map[string][]Mapping)
 	almanacParts := filereading.BreakInputIntoComponents(file)
 	
-	for key, value := range almanacParts {
-		if key == "seeds" {
+	for index, value := range almanacParts {
+		if index == 0 {
 			seeds = getSeeds(value)
 		} else {
-			almanac[key] = ConvertLinesToMap(value)
+			almanac = append(almanac, ConvertLinesToMap(value) )
 		}
 	}
 	return seeds, almanac
