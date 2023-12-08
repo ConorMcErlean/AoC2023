@@ -95,7 +95,7 @@ func FinalSortLayer(groups map[int][]Hand, hands []Hand) []Hand {
 func MakeValueMap() map[rune]int {
 	values := make(map[rune]int)
 	startScore := 2
-	cards := []rune {'2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'}
+	cards := []rune {'J', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A'}
 
 	for _, card := range cards {
 		values[card] = startScore

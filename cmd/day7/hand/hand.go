@@ -22,6 +22,7 @@ func GetHand(line string, highCardMap map[rune]int) Hand {
 	for _, char := range hand {
 		totals[char] = totals[char] +1
 	}
+	totals = Jokerify(totals)
 	strength := GetStrength(totals)
 	highCardScores := CalculateHighCards(hand, highCardMap)
 	return Hand {
@@ -82,6 +83,92 @@ func CalculateHighCards(input string, highCardMap map[rune]int) (scores []int) {
 //		fmt.Printf("\nChar %v = Score %v ", string(rune(char)), highCardMap[rune(char)])
 		scores[i] = highCardMap[rune(char)]
 	}
-	fmt.Println(" High Card Scores : ", scores)
+	//fmt.Println(" High Card Scores : ", scores)
 	return scores
 }
+
+func Jokerify(cards map[rune]int) map[rune]int {
+	jokers, any := cards['J']
+	if !any || jokers == 5 {
+		fmt.Printf("\nNo Jokes for")
+		for r := range cards {
+		fmt.Print(string(rune(r)))
+		}
+		return cards
+	}
+	newCards := make(map[rune]int)
+	numberOfCards := len(cards)
+
+	switch {
+	case numberOfCards == 2 :
+		// Any change will make a 5 of a Kind
+		for card, _ := range cards {
+			if card != 'J' {
+				newCards[card] = 5
+			}
+		}
+		return newCards
+
+	case numberOfCards == 3 && jokers == 2 :
+		for card, count := range cards {
+			if card != 'J' && count == 2 {
+				newCards[card] = 4
+			} else if card != 'J' {
+				newCards[card] = count
+			}
+		}
+		return newCards
+	case numberOfCards == 3 :
+		// 2 X 2 -> Full house
+		// 3 of a kind -> 4 of a kind
+		alreadyJockered := false
+		for card, count := range cards {
+			if count == 3 {
+				newCards[card] = 4
+			} else if count == 2 && !alreadyJockered {
+				newCards[card] = 3
+				alreadyJockered = true
+			} else if card != 'J' {
+				newCards[card] = count
+			}
+		}
+		return newCards
+	case numberOfCards == 4 && jokers == 2 :
+		alreadyJockered := false
+		for card, count := range cards {
+			if !alreadyJockered && card != 'J' {
+				newCards[card] = 3
+				alreadyJockered = true
+			} else if card != 'J' {
+				newCards[card] = count
+			}
+		}
+		return newCards
+
+
+	case numberOfCards == 4:
+		// Pair becomes 3 of a kind
+		for card, count := range cards {
+			if count == 2 {
+				newCards[card] = 3
+			} else if card != 'J' {
+				newCards[card] = count
+			}
+		}
+		return newCards
+	case numberOfCards == 5:
+		alreadyJockered := false
+		for card, count := range cards {
+			if !alreadyJockered && card != 'J' {
+				newCards[card] = 2
+				alreadyJockered = true
+			} else if card != 'J' {
+				newCards[card] = count
+			}
+		}
+		return newCards
+	}
+	fmt.Println("!-- Should Never hit here--!")
+	return cards
+}
+
