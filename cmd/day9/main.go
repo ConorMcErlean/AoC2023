@@ -8,13 +8,16 @@ import (
 
 func main() {
 	values := GetValues()
-	total := 0
+	total, totalPrev := 0, 0
+	
 	for _, valuelist := range values {
 		next := FindNext(valuelist)
-		fmt.Printf("\nNext value in list %v : %v\n", valuelist, next)
+		previous := FindPrevious(valuelist)
+		fmt.Printf("\nNext values in list [%v]: %v : [%v]\n", previous, valuelist, next)
+		totalPrev += previous
 		total += next
 	}
-	fmt.Printf("\n Total of Next Values : %v \n\n", total)	
+	fmt.Printf("\n Total of Prev, Next Values : %v , %v \n\n", totalPrev, total)	
 }
 
 func GetValues() [][]int {
@@ -27,6 +30,32 @@ func GetValues() [][]int {
 }
 
 func FindNext(values []int) int {
+	differenceLayers := GetDifferenceLayers(values)	
+	// Now find next number
+	total := 0
+	for i := len(differenceLayers)-1; i >= 0; i-- {
+		layer := differenceLayers[i]
+		total += layer[len(layer)-1]
+	}
+
+	return total
+
+}
+
+func FindPrevious(values []int) int {
+	differenceLayers := GetDifferenceLayers(values)
+	odd := (len(differenceLayers) % 2 ) != 0
+	fmt.Printf("\nDifference Layers %vi Odd: %v", differenceLayers, odd)
+	total := 0
+	for i := len(differenceLayers)-1; i >= 0; i-- {
+		layer := differenceLayers[i]
+
+		total = layer[0] - total
+	}
+	return total
+}
+
+func GetDifferenceLayers(values []int) [][]int {
 	var differenceLayers [][]int
 	foundEnd := false
 	var differences []int
@@ -40,17 +69,7 @@ func FindNext(values []int) int {
 			break
 		}
 	}
-
-	// Now find next number
-	total := 0
-	fmt.Printf("Difference Layers %v", differenceLayers)
-	for i := len(differenceLayers)-1; i >= 0; i-- {
-		layer := differenceLayers[i]
-		total += layer[len(layer)-1]
-	}
-
-	return total
-
+	return differenceLayers
 }
 
 func getDifferences(values []int) ([]int, bool) {
