@@ -2,6 +2,7 @@ package pipes
 
 import (
 	"adventOfCode23/cmd/common"
+	"fmt"
 )
 
 func ReadPipeDiagram() ( [][]rune, Location ) {
@@ -26,6 +27,28 @@ func GetRoutes(diagram [][]rune, start Location)([]Location, []Location){
 	way1 := BuildRoute(diagram, start, start1)
 	way2 := BuildRoute(diagram, start, start2)
 	return way1, way2
+}
+
+func PrintPipes(diagram[][]rune, route []Location) {
+	printable := make ([][]rune, len(diagram))
+	row := make([]rune, len(diagram[0]))
+	for y := range row {
+		row[y] = '.'
+	}
+	for x := range diagram {
+		printable[x] = row
+	}
+	for _, location := range route {
+		printable[location.X][location.Y] = diagram[location.X][location.Y]
+	}
+
+	for _, row := range diagram {
+		fmt.Print("\n")
+		for _, char := range row {
+			fmt.Print(string(rune(char)))
+		}
+	}
+
 }
 
 func BuildRoute(diagram [][]rune, start Location, first Location) (locations []Location){
