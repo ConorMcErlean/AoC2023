@@ -29,25 +29,27 @@ func GetRoutes(diagram [][]rune, start Location)([]Location, []Location){
 	return way1, way2
 }
 
-func PrintPipes(diagram[][]rune, route []Location) {
+func PrintPipes(diagram[][]rune, route []Location) [][]rune {
 	printable := make ([][]rune, len(diagram))
-	row := make([]rune, len(diagram[0]))
-	for y := range row {
-		row[y] = '.'
-	}
 	for x := range diagram {
-		printable[x] = row
+		printable[x] = make([]rune, len(diagram[0]))
+		for y := range printable[x] {
+			printable[x][y] = '.'
+		}
 	}
+	
+
 	for _, location := range route {
 		printable[location.X][location.Y] = diagram[location.X][location.Y]
 	}
 
-	for _, row := range diagram {
+	for _, row := range printable {
 		fmt.Print("\n")
 		for _, char := range row {
 			fmt.Print(string(rune(char)))
 		}
 	}
+	return printable
 
 }
 

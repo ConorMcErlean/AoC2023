@@ -1,6 +1,7 @@
 package main
 
 import (
+	"adventOfCode23/cmd/day10/nests"
 	"adventOfCode23/cmd/day10/pipes"
 	"fmt"
 )
@@ -8,10 +9,16 @@ import (
 func main() {
 	pipeDiagram, start := pipes.ReadPipeDiagram()
 	route1, route2 := pipes.GetRoutes(pipeDiagram, start)
-//	fmt.Println(route1)
-//	fmt.Println(route2)
-	pipes.PrintPipes(pipeDiagram, route1)
+	FindMiddle(route1, route2)
+	pipeOutline := pipes.PrintPipes(pipeDiagram, route1)
+	enclosed := nests.FindEnclosed(pipeOutline)
+	fmt.Printf("\n Enclosed in above %v", enclosed)
 
+
+
+}
+
+func FindMiddle(route1 []pipes.Location, route2[]pipes.Location) {
 	for i :=0; i < len(route1); i++ {
 		loc1 := route1[i]
 		loc2 := route2[i]
@@ -21,6 +28,5 @@ func main() {
 				fmt.Printf("\nfound the middle %v, %v at %v", loc1, loc2, i)
 			}
 		}
-	
 	}
 }
