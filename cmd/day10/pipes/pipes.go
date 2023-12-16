@@ -29,8 +29,11 @@ func GetRoutes(diagram [][]rune, start Location)([]Location, []Location){
 	return way1, way2
 }
 
-func PrintPipes(diagram[][]rune, route []Location) [][]rune {
+func PrintPipes(diagram [][]rune, route []Location) [][]rune {
 	printable := make ([][]rune, len(diagram))
+	firstLoc := route[0]
+	diagram[firstLoc.X][firstLoc.Y] = ConvertStartChar(diagram, route)
+
 	for x := range diagram {
 		printable[x] = make([]rune, len(diagram[0]))
 		for y := range printable[x] {
@@ -43,14 +46,60 @@ func PrintPipes(diagram[][]rune, route []Location) [][]rune {
 		printable[location.X][location.Y] = diagram[location.X][location.Y]
 	}
 
+
+	linesToTrim := 0
+	removeLine := true
+	fmt.Printf("\n Printable length %v", len(printable))
+	// Remove lines that are just dots
+	for i := len(printable)-1; i >= 0 && removeLine; i -- {
+		for _, char := range printable[i] {
+			if rune(char) != '.' {
+				fmt.Println(string(rune(char)))
+				removeLine = false
+				break
+			}
+		} 
+		if removeLine {
+			linesToTrim++
+		}
+	}
+
+	cutPoint := len(printable) - linesToTrim - 1
+	fmt.Printf("\n cut point %v \n", cutPoint)
+	printable = printable[:cutPoint]
+
 	for _, row := range printable {
 		fmt.Print("\n")
 		for _, char := range row {
 			fmt.Print(string(rune(char)))
 		}
 	}
-	return printable
 
+	return printable
+}
+
+func ConvertStartChar(diagram [][]rune, route []Location) rune {
+	firstLoc := route[1]
+	lastLoc := route[len(route)-2]
+	fmt.Printf("\n %v %v\n", firstLoc, lastLoc)
+	xDif := firstLoc.X - lastLoc.X
+	yDif := firstLoc.Y - lastLoc.Y
+	var char rune
+	switch {
+	case  xDif == 1 && yDif == -1:
+		char = 'F'
+	case  xDif == 1 && yDif == 1:
+		char = '7'
+	case  (xDif == 1 || xDif == -1) && yDif == 0:
+		char = '|'
+	case  xDif == 0 && (yDif == 1 || yDif == -1):
+		char = '-'
+	case  xDif == -1 && yDif == -1:
+		char = 'L'
+	case  xDif == -1 && yDif == 1:
+		char = 'J'
+	}
+	return char
 }
 
 func BuildRoute(diagram [][]rune, start Location, first Location) (locations []Location){

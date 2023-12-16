@@ -12,7 +12,7 @@ func main() {
 	FindMiddle(route1, route2)
 	pipeOutline := pipes.PrintPipes(pipeDiagram, route1)
 	enclosed := nests.FindEnclosed(pipeOutline)
-	fmt.Printf("\n Enclosed in above %v", enclosed)
+	fmt.Printf("\n Enclosed in above %v\n", enclosed)
 
 
 
