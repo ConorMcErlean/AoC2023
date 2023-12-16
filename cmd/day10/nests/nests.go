@@ -57,8 +57,7 @@ func Check(
 	startlocation Location, 
 	diagram [][]rune, 
 	checked [][]bool )(int, [][]bool, []Location) {
-	count :=0
-	location := startlocation
+	count := 0
 	var currentLocs, empty []Location
 
 	char := diagram[startlocation.X][startlocation.Y]
@@ -67,27 +66,48 @@ func Check(
 		return 0, checked, empty
 	}
 
+	//fmt.Printf("\n Checking %v", startlocation)
 
-	for {
-		checked[location.X][location.Y]=true
+	count, checked, currentLocs = CheckDown(startlocation, diagram, checked, count, currentLocs)
+	//fmt.Printf("\n count After check %v", count)
+	return count, checked, currentLocs
+}
 
-		if (FoundOuterWall(location, diagram)){
-			return 0, checked, empty
-		}
-		if LowerWall(location, diagram) || LeftWall(location, diagram) || RightWall(location, diagram){
-			return count, checked, currentLocs
-		}
-		
-		count++
-		currentLocs = append(currentLocs, location)
+func CheckDown(
+	location Location, 
+	diagram [][]rune, 
+	checked [][]bool, 
+	count int, 
+	currentLocs []Location ) (int, [][]bool, []Location)  {
+	var empty []Location
 
-		count, checked, currentLocs = CheckDir("left", Location{X: location.X, Y: location.Y -1}, diagram, checked, count, currentLocs)
-		count, checked, currentLocs = CheckDir("right", Location{X: location.X, Y: location.Y +1}, diagram, checked, count, currentLocs)
-		if count == 0 {
-			return 0, checked, empty
-		}
-		location = Location{X: location.X +1, Y: location.Y}
+	checked[location.X][location.Y]=true
+
+	if (FoundOuterWall(location, diagram)){
+
+		fmt.Println("Returning zero for outer wall")
+		return 0, checked, empty
 	}
+	if LowerWall(location, diagram) || LeftWall(location, diagram) || RightWall(location, diagram){
+		return count, checked, currentLocs
+	}
+		
+	count++
+	currentLocs = append(currentLocs, location)
+	count, checked, currentLocs = CheckDir("left", Location{X: location.X, Y: location.Y -1}, diagram, checked, count, currentLocs)
+	count, checked, currentLocs = CheckDir("right", Location{X: location.X, Y: location.Y +1}, diagram, checked, count, currentLocs)
+	
+	fmt.Printf("\n After Horizontal Check, count is %v", count)
+	if count == 0 {
+		fmt.Println("returning zero, because I got a zero")
+		return 0, checked, empty
+	}
+
+	fmt.Printf("\n before going down a level, count is %v", count)
+
+	count, checked, currentLocs = CheckDown(Location{X: location.X +1, Y: location.Y}, diagram, checked, count, currentLocs )
+	return count, checked, currentLocs
+	
 }
 
 func CheckDir(
@@ -97,8 +117,10 @@ func CheckDir(
 	checked [][]bool, 
 	count int, 
 	currentLocs []Location ) (int, [][]bool, []Location) {
+	fmt.Printf("\n On %v pass, value is %v", direction, count)
 	// Incase you are sent an out of index location
 	if location.X < 0 || location.X > len(checked) -1 || location.Y < 0 || location.Y > len(checked[0]){
+		fmt.Println("Returning zero because out of bounds")
 		return 0, checked, currentLocs
 	}
 
@@ -106,16 +128,27 @@ func CheckDir(
 
 	count, checked, currentLocs = HorizontalPipe(direction, location, diagram, checked, count, currentLocs)
 
-	count, checked, currentLocs = VerticalPipe(direction, location, diagram, checked, count, currentLocs)
+	count, checked, currentLocs = VerticalPipe(location, diagram, checked, count, currentLocs)
+	fmt.Printf("Count after pipes %v", count)
+	
+	// if on the sweep we find a path below, follow it
+	if (location.X != len(checked) -1 ) && diagram[location.X+1][location.Y] == '.' {
+		fmt.Println("going down!!")
+		count, checked, currentLocs = CheckDown(Location{X: location.X +1, Y: location.Y}, diagram, checked, count, currentLocs)
 
-
-	if left || LeftWall(location, diagram) {
-		return count, checked, currentLocs	
-	} else if RightWall(location, diagram) {
-		return count, checked, currentLocs	
 	}
 
+
+	if LeftWall(location, diagram) || RightWall(location, diagram) {
+		fmt.Printf("\nRight wall returning %v", count)
+		return count, checked, currentLocs	
+	}
+	// Need a way to go down
+	if left {
+		fmt.Println("Do we ever hit this line?")
+	}
 	if (FoundOuterWall(location, diagram)){
+		fmt.Println("Returning zero for outer wall")
 		return 0, checked, currentLocs
 	}
 
@@ -145,6 +178,8 @@ func HorizontalPipe(
 	checked [][]bool, 
 	count int, 
 	currentLocs []Location ) (int, [][]bool, []Location) {
+	fmt.Printf("\n HoriPipe starting with %v", count)
+
 	char := diagram[location.X][location.Y]
 	var nextDir Location
 	if strings.EqualFold("left", direction) {
@@ -157,9 +192,10 @@ func HorizontalPipe(
 		if location.X == 0 {
 			return count, checked, currentLocs
 		}
-		lowerChar := diagram[location.X+1][location.Y]
+		upperChar := diagram[location.X-1][location.Y]
 		// Check if just wall, or Pipe
-		if lowerChar == 'J' || lowerChar == 'L' || lowerChar == '-' {
+		if upperChar == 'J' || upperChar == 'L' || upperChar == '-' {
+			fmt.Println("PIPE Hor")
 			count, checked, currentLocs = CheckDir(direction, nextDir, diagram, checked, count, currentLocs)
 		}
 	}
@@ -168,16 +204,19 @@ func HorizontalPipe(
 		if location.X == len(diagram) -1 {
 			return count, checked, currentLocs
 		}
-		upperChar := diagram[location.X-1][location.Y]
-		if upperChar == 'F' || upperChar == '7' || upperChar == '-' {
+		lowerChar := diagram[location.X+1][location.Y]
+		if lowerChar == 'F' || lowerChar == '7' || lowerChar == '-' {
+
+			fmt.Println("PIPE Hor")
 			count, checked, currentLocs = CheckDir(direction, nextDir, diagram, checked, count, currentLocs)
 		}
 	}
+
+	fmt.Printf("\n HoriPipe returning %v", count)
 	return count, checked, currentLocs
 }
 
 func VerticalPipe(
-	direction string, 
 	location Location, 
 	diagram [][]rune, 
 	checked [][]bool, 
@@ -195,7 +234,9 @@ func VerticalPipe(
 		leftChar := diagram[location.X][location.Y-1]
 		// Check if just wall, or Pipe
 		if leftChar == 'J' || leftChar == '7' || leftChar == '|' {
-			count, checked, currentLocs = CheckDir(direction, nextDir, diagram, checked, count, currentLocs)
+
+			fmt.Printf("\n in a pipe down going to %v", nextDir)
+			count, checked, currentLocs = CheckDown(nextDir, diagram, checked, count, currentLocs)
 		}
 	}
 
@@ -205,8 +246,10 @@ func VerticalPipe(
 		}
 		rightChar := diagram[location.X][location.Y+1]
 		if rightChar == 'F' || rightChar == 'L' || rightChar == '|' {
-			count, checked, currentLocs = CheckDir(direction, nextDir, diagram, checked, count, currentLocs)
+			fmt.Printf("\n in a pipe down going to %v", nextDir)
+			count, checked, currentLocs = CheckDown(nextDir, diagram, checked, count, currentLocs)
 		}
 	}
+	fmt.Printf("\n VertPipe returning %v", count)
 	return count, checked, currentLocs
 }

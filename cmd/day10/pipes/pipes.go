@@ -66,7 +66,7 @@ func PrintPipes(diagram [][]rune, route []Location) [][]rune {
 
 	cutPoint := len(printable) - linesToTrim - 1
 	fmt.Printf("\n cut point %v \n", cutPoint)
-	printable = printable[:cutPoint]
+	printable = printable[:cutPoint + 1]
 
 	for _, row := range printable {
 		fmt.Print("\n")
