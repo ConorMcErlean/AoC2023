@@ -3,6 +3,7 @@ package nests
 import (
 	. "adventOfCode23/cmd/day10/pipes"
 	"fmt"
+	"strings"
 )
 func FindEnclosed(diagram [][]rune) int {
 	enclosed := 0
@@ -95,34 +96,31 @@ func CheckDir(direction string, location Location, diagram [][]rune, checked [][
 		return 0, checked, currentLocs
 	}
 
-	switch direction {
-	case "left" :
-		if LeftWall(location, diagram) {
-			return count, checked, currentLocs	
-		}
-		// May need to double check this logic
-		if checked[location.X][location.Y] {
-			return count, checked, currentLocs
-		}
-		count++
-		currentLocs = append(currentLocs, location)
-		count, checked, currentLocs = CheckDir("left", Location{X: location.X, Y: location.Y-1 }, diagram, checked, count, currentLocs)
-	case "right":
-		if RightWall(location, diagram) {
-			return count, checked, currentLocs	
-		}
-		// May need to double check this logic
-		if checked[location.X][location.Y] {
-			return count, checked, currentLocs
-		}
+	left := strings.EqualFold("left", direction)
 
-		count++
-		currentLocs = append(currentLocs, location)
-		count, checked, currentLocs = CheckDir("right", Location{X: location.X, Y: location.Y+1 }, diagram, checked, count, currentLocs)
-		return count, checked, currentLocs
-	default :
-		fmt.Println("Shouldnt have gone here!")
+	count, checked, currentLocs = HorizontalPipe(direction, location, diagram, checked, count, currentLocs)
+
+	if left || LeftWall(location, diagram) {
+			return count, checked, currentLocs	
+	} else if RightWall(location, diagram) {
+			return count, checked, currentLocs	
 	}
+
+	// May need to double check this logic
+	if checked[location.X][location.Y] {
+		return count, checked, currentLocs
+	} else {
+		checked[location.X][location.Y] = true
+	}
+	count++
+	currentLocs = append(currentLocs, location)
+
+	if left {
+		count, checked, currentLocs = CheckDir(direction, Location{X: location.X, Y: location.Y-1 }, diagram, checked, count, currentLocs)
+	} else {
+		count, checked, currentLocs = CheckDir(direction, Location{X: location.X, Y: location.Y+1 }, diagram, checked, count, currentLocs)
+	}
+
 	return count, checked, currentLocs
 }
 
@@ -171,3 +169,30 @@ func LowerWall(location Location, diagram [][]rune) bool {
 	}
 	return false
 }
+
+func HorizontalPipe(direction string, location Location, diagram [][]rune, checked [][]bool, count int, currentLocs []Location) (int, [][]bool, []Location) {
+	char := diagram[location.X][location.Y]
+	var nextDir Location
+	if strings.EqualFold("left", direction) {
+		nextDir = Location{X: location.X, Y: location.Y -1}
+	} else {
+		nextDir = Location{X: location.X, Y: location.Y+1 }
+	}
+
+	if char == 'F' || char == '7' || char == '-' {
+		lowerChar := diagram[location.X+1][location.Y]
+		// Check if just wall, or Pipe
+		if lowerChar == 'J' || lowerChar == '7' || lowerChar == '-' {
+			count, checked, currentLocs = CheckDir(direction, nextDir, diagram, checked, count, currentLocs)
+		}
+	}
+
+	if char == 'J' ||char == '7' || char == '-' {
+		upperChar := diagram[location.X-1][location.Y]
+		if upperChar == 'F' || upperChar == '7' || upperChar == '-' {
+			count, checked, currentLocs = CheckDir(direction, nextDir, diagram, checked, count, currentLocs)
+		}
+	}
+	return count, checked, currentLocs
+}
+
