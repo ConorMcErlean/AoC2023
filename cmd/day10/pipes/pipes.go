@@ -5,6 +5,18 @@ import (
 	"fmt"
 )
 
+type PipeNode struct {
+	Location Location
+	Checked bool
+	Char rune
+}
+
+func (node *PipeNode) GetLocation() (x int, y int) {
+	x = node.Location.X
+	y = node.Location.Y
+	return x, y
+}
+
 func ReadPipeDiagram() ( [][]rune, Location ) {
 	file := common.ReadFileFromArgs()
 	pipes := make([][]rune, len(file))
@@ -49,7 +61,7 @@ func PrintPipes(diagram [][]rune, route []Location) [][]rune {
 
 	linesToTrim := 0
 	removeLine := true
-	fmt.Printf("\n Printable length %v", len(printable))
+//	fmt.Printf("\n Printable length %v", len(printable))
 	// Remove lines that are just dots
 	for i := len(printable)-1; i >= 0 && removeLine; i -- {
 		for _, char := range printable[i] {
@@ -65,7 +77,7 @@ func PrintPipes(diagram [][]rune, route []Location) [][]rune {
 	}
 
 	cutPoint := len(printable) - linesToTrim - 1
-	fmt.Printf("\n cut point %v \n", cutPoint)
+//	fmt.Printf("\n cut point %v \n", cutPoint)
 	printable = printable[:cutPoint + 1]
 
 	for _, row := range printable {
@@ -74,6 +86,7 @@ func PrintPipes(diagram [][]rune, route []Location) [][]rune {
 			fmt.Print(string(rune(char)))
 		}
 	}
+	fmt.Print("\n")
 
 	return printable
 }

@@ -11,9 +11,10 @@ func main() {
 	route1, route2 := pipes.GetRoutes(pipeDiagram, start)
 	FindMiddle(route1, route2)
 	pipeOutline := pipes.PrintPipes(pipeDiagram, route1)
+
 	enclosed := nests.FindEnclosed(pipeOutline)
 	fmt.Printf("\n Enclosed in above %v\n", enclosed)
-
+	pipes.PrintPipes(pipeDiagram, route1)
 
 
 }

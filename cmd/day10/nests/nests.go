@@ -1,57 +1,193 @@
 package nests
 
 import (
+	nestwalls "adventOfCode23/cmd/day10/nestWalls"
 	. "adventOfCode23/cmd/day10/pipes"
+	. "adventOfCode23/cmd/day10/walls"
 	"fmt"
 	"strings"
-	. "adventOfCode23/cmd/day10/walls"
 )
-func FindEnclosed(diagram [][]rune) int {
-	enclosed := 0
 
-	alreadyChecked := make([][]bool, len(diagram))
-	for index := range alreadyChecked {
-		row := make([]bool, len(diagram[0]) )
-		for i := range row {
-			row[i] = false
-		}
-		alreadyChecked[index] = row
+type Nest struct {
+	Wall []PipeNode
+	Contents int
+	Valid bool
+}
+
+//func (node *PipeNode) AssociateNest(nest Nest) {
+//	node.AssociatedNests = append(node.AssociatedNests, nest)
+//}
+
+func BuildNest(node PipeNode, diagram [][]PipeNode) (Nest, [][]PipeNode) {
+	// Builds Walls
+	wall, valid, readRange, diagram := nestwalls.BuildWalls(node, diagram)
+	contents, diagram := calculateContents(wall, readRange, diagram)
+	if !valid {
+		contents = 0
 	}
+	return Nest{ Wall: wall, Contents: contents, Valid: valid }, diagram
+}
+
+func (nest Nest) checkTunnels(diagram [][]PipeNode) {
+	// todo
+
+}
+
+// Some flaw with this method...
+func calculateContents(walls []PipeNode, readRange nestwalls.ReadRange, diagram [][]PipeNode) (int, [][]PipeNode) {
+	// should be safe access & doesnt handle open nests well
+	reading := checkPointInWalls(diagram[readRange.High-1][readRange.Left-1], walls)
+	count := 0
+	ignoreNextWall := false
 	
-	x,y, enclosed := 0, 0, 0
-	var enclosedLocs []Location
+	fmt.Printf("Read range high %v, low %v, left %v right%v", readRange.High, readRange.Low, readRange.Left, readRange.Right)
+	for i := readRange.High; i <= readRange.Low; i++ {
+		for j := readRange.Left; j < readRange.Right; j++ {
+			if !reading {
+				fmt.Printf("\n Im not reading for node %v because high %v & left %v were not in the wall", diagram[i][j], readRange.High, readRange.Left)
+			}
+			if reading {
+				fmt.Printf("\nI am Reading %v:%v\n", i, j)
+				point := diagram[i][j]
+				if point.Char == '.' {
+					fmt.Println("I am Counting ")
+					count++
+				} else if checkPointInWalls(point, walls) {
+					// Need to handle a chain of wall Locations
+					if !ignoreNextWall {
+						reading = !reading
+						ignoreNextWall = true
+					} else if checkPointInWalls(diagram[i][j+1], walls) {
+						continue
+					} else {
+						reading = !reading
+						ignoreNextWall = false
+					}
+				}
 
-
-	for {
-		
-		if !alreadyChecked[x][y] {
-			var currentLocs []Location
-			count := 0
-			location := Location {X: x, Y: y }
-			count, alreadyChecked, currentLocs = Check(location, diagram, alreadyChecked)
-			enclosed += count
-			if count > 0 {
-				enclosedLocs = append(enclosedLocs, currentLocs... ) 
+				diagram[point.Location.X][point.Location.Y].Checked = true
+				fmt.Printf("Should be true %v:%v %v count %v", point.Location.X, point.Location.Y, diagram[point.Location.X][point.Location.Y].Checked, count)
 			}
 		}
+	}
+	return count, diagram
+}
 
-		if x == len(alreadyChecked) -1 && y == len(alreadyChecked[0])-1 {
-			break
-		}
 
-		if y < len(alreadyChecked[0]) -1 {
-			y++
-			continue
-		} else {
-			y = 0
-			x++
+func buildNodeMap(diagram [][]rune) [][]PipeNode {
+	nodeMap := make([][]PipeNode, len(diagram))
+	for i := range diagram {
+		nodeMap[i] = make([]PipeNode, len(diagram[i]))
+		for j, char := range diagram[i] {
+			nodeMap[i][j] = PipeNode{
+				Location: Location{X: i, Y: j},
+				Checked: false,
+				Char: char,
+			}
 		}
 	}
-
-	fmt.Printf("\nEnclosed Locations: %v\n", enclosedLocs)
-
-	return enclosed
+	return nodeMap
 }
+
+func checkPointInWalls(node PipeNode, walls []PipeNode) bool {
+	for _, wallNode := range walls {
+		if wallNode.Location.X == node.Location.X && wallNode.Location.Y == node.Location.Y {
+			return true
+		}
+	}
+	return false
+}
+
+func FindEnclosed(diagram [][]rune) int {
+	nodeMap := buildNodeMap(diagram)
+
+	var nests []Nest
+	i, j := 0, 0
+
+	for {
+		node := nodeMap[i][j]
+			if !node.Checked {
+			if node.Char == '.' {
+				var nest Nest
+				nest, nodeMap = BuildNest(node, nodeMap)
+				nests = append(nests, nest)
+			}
+		}
+		fmt.Printf("\n has %v:%v been checked %v", i, j, node.Checked)
+
+
+		// Loop Logic
+		if j == len(nodeMap[i]) -1 {
+			if i == len(nodeMap) -1 {
+				break
+			}
+			j = 0;
+			i++
+		} else {
+			j++
+		}
+
+
+	}
+
+	total := 0
+
+	for _, nest := range nests {
+		if nest.Valid {
+			fmt.Printf("\n A nest found with %v contents", nest.Contents )
+			total += nest.Contents
+		}
+	}
+	return total
+}
+// Assume below here is trash ------
+
+///func FindEnclosed(diagram [][]rune) int {
+//	enclosed := 0
+///
+//	alreadyChecked := make([][]bool, len(diagram))
+//	for index := range alreadyChecked {
+//		row := make([]bool, len(diagram[0]) )
+//		for i := range row {
+//			row[i] = false
+//		}
+//		alreadyChecked[index] = row
+//	}
+//	
+//	x,y, enclosed := 0, 0, 0
+//	var enclosedLocs []Location
+//
+//
+//	for {
+//		
+//		if !alreadyChecked[x][y] {
+//			var currentLocs []Location
+//			count := 0
+//			location := Location {X: x, Y: y }
+//			count, alreadyChecked, currentLocs = Check(location, diagram, alreadyChecked)
+//			enclosed += count
+//			if count > 0 {
+//				enclosedLocs = append(enclosedLocs, currentLocs... ) 
+//			}
+//		}
+//
+//		if x == len(alreadyChecked) -1 && y == len(alreadyChecked[0])-1 {
+//			break
+//		}
+//
+//		if y < len(alreadyChecked[0]) -1 {
+//			y++
+//			continue
+//		} else {
+//			y = 0
+//			x++
+//		}
+//	}
+//
+//	fmt.Printf("\nEnclosed Locations: %v\n", enclosedLocs)
+//
+//	return enclosed
+//}
 
 func Check(
 	startlocation Location, 
