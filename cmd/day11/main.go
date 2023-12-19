@@ -8,22 +8,26 @@ import (
 func main(){
 	file := common.ReadFileFromArgs()
 	galaxies, Universe := fileToUniverse(file)
-	pairs := makeGalaxyPairs(galaxies)
-	total := 0
+	galaxies2 := fileToBigUniverse(file)
+	
+	Universe = append(Universe, "")
 
-	for _, line := range Universe {
-		fmt.Println(line)
-	}
-	for _, galaxy := range galaxies {
-		fmt.Println(galaxy)
-	}
+	pairs := makeGalaxyPairs(galaxies)
+	pairs2 := makeGalaxyPairs(galaxies2)
+	total, total2 := int64(0), int64(0)
+
 	for _, pair := range pairs {
 		pair =	pair.calculateDistance()
-		pair.printPair()
 		total += pair.distance
 	}
 
-	fmt.Printf("\nTotal Distance %v\n", total)
+	for _, pair := range pairs2 {
+		pair =	pair.calculateDistance()
+		pair.printPair()
+		total2 += pair.distance
+	}
+
+	fmt.Printf("\nTotal Distance %v vs %v\n", total, total2)
 }
 
 func fileToUniverse(file []string) (galaxies []Galaxy, Universe []string) {
@@ -49,7 +53,7 @@ func fileToUniverse(file []string) (galaxies []Galaxy, Universe []string) {
 		galaxyFound := false
 		for y, char := range line {
 			if char != '.' {
-				galaxies = append(galaxies, Galaxy{X: x + gravityModifier, Y: y, Number: galaxyNum})
+				galaxies = append(galaxies, Galaxy{X: int64(x + gravityModifier), Y: int64(y), Number: galaxyNum})
 				galaxyNum++
 				galaxyFound = true
 			}
@@ -65,9 +69,53 @@ func fileToUniverse(file []string) (galaxies []Galaxy, Universe []string) {
 	return galaxies, Universe
 }
 
+func fileToBigUniverse(file []string) (galaxies []Galaxy) {
+	galaxyNum := 1
+	gravityModifierX := int64(0)
+	gravityScaleFactor := int64(1_000_000)
+
+//	gravityScaleFactor := 1000000 
+	var indexesForYGravity []int
+	for y := range file[0] {
+		if checkColumnEmpty(y, file) {
+			indexesForYGravity = append(indexesForYGravity, y)
+		}
+	}
+
+	
+	for x, line := range file {
+		yIndex := 0
+		gravityModifierY := int64(0)
+		galaxyFound := false
+		for y, char := range line {
+			// Whem condition not met, we have done all the gravity lines
+			if yIndex < len(indexesForYGravity){
+				if y == indexesForYGravity[yIndex] {
+					yIndex++
+					gravityModifierY++
+				}
+			}
+				if char != '.' {
+				
+			//	galaxies = append(galaxies, Galaxy{X: int64(x)-1 + int64(gravityScaleFactor) , Y: int64(y)-1 + int64(gravityScaleFactor) , Number: galaxyNum})
+				galaxies = append(galaxies, Galaxy {
+					X: ( int64(x)-gravityModifierX ) + ( gravityModifierX * gravityScaleFactor ) , 
+					Y: ( int64(y)-gravityModifierY ) + ( gravityModifierY * gravityScaleFactor ) , Number: galaxyNum})
+				galaxyNum++
+				galaxyFound = true
+			}
+		}
+		if !galaxyFound {
+			gravityModifierX++
+		}
+	}
+	return galaxies
+}
+
 func checkColumnEmpty(y int, file []string) bool {
 	for x:= 0; x < len(file); x++ {
 		if file[x][y] != '.' {
+
 			return false 
 		}
 	}
@@ -86,7 +134,7 @@ func makeGalaxyPairs(galaxies []Galaxy) []GalaxyPair {
 
 func (pair GalaxyPair) calculateDistance() GalaxyPair {
 	// Make X's match
-	distance := 0
+	distance := int64(0)
 	//pair.a.X
 	if pair.a.X > pair.b.X {
 		distance += (pair.a.X - pair.b.X)	
@@ -104,17 +152,17 @@ func (pair GalaxyPair) calculateDistance() GalaxyPair {
 }
 
 func (pair GalaxyPair) printPair() {
-	fmt.Printf("\n Galaxy %v to Galaxy %v distance %v", pair.a.Number, pair.b.Number, pair.distance)
+	fmt.Printf("\n Galaxy %v (%v, %v) to Galaxy %v (%v, %v) distance %v", pair.a.Number,pair.a.X, pair.a.Y, pair.b.Number, pair.b.X, pair.b.Y, pair.distance)
 }
 
 type Galaxy struct {
 	Number int
-	X int
-	Y int
+	X int64
+	Y int64
 }
 
 type GalaxyPair struct {
-	distance int
+	distance int64
 	a Galaxy
 	b Galaxy
 }
